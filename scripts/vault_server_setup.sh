@@ -129,7 +129,7 @@ echo "Vault server setup complete with HTTPS enabled!"
 echo "Vault is accessible at: https://$PUBLIC_DNS:8200"
 echo "Certificate details saved in /opt/vault/tls/"
 
-cat >> /home/ec2-user/.bashrc << 'EOF'
+cat >> /home/ec2-user/.bashrc << EOF
 export VAULT_ADDR=https://localhost:8200
 export VAULT_TOKEN=$VAULT_TOKEN
 export VAULT_SKIP_VERIFY=true

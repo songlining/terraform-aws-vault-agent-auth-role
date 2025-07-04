@@ -84,14 +84,16 @@ systemctl daemon-reload
 systemctl enable vault-agent
 systemctl start vault-agent
 
+sleep 10
+
 # add vault settings to root's .bashrc
-cat >> /root/.bashrc << 'EOF'
+cat >> /root/.bashrc << EOF
 export VAULT_ADDR=https://${vault_server_ip}:8200
 export VAULT_TOKEN=$(cat /opt/vault/agent-data/vault-token)
 export VAULT_SKIP_VERIFY=true
 EOF
 
-cat >> /home/ec2-user/.bashrc << 'EOF'
+cat >> /home/ec2-user/.bashrc << EOF
 export VAULT_ADDR=https://${vault_server_ip}:8200
 export VAULT_TOKEN=$(cat /opt/vault/agent-data/vault-token)
 export VAULT_SKIP_VERIFY=true
