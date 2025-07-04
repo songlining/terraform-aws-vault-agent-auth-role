@@ -82,10 +82,9 @@ Sample code of using this module is under examples folder.
 
 After deployment, you can test the setup using the following steps:
 1. SSH into the Vault agent instance (server-b) using the key pair or from aws console
-2. `sudo su root`
-3. Run `vault token capabilities $VAULT_TOKEN secret/*`, you should see the following output:
-
+2. Run `vault token capabilities $VAULT_TOKEN secret/*`, you should see the following output:
    `create, delete, list, read, update`
+3. or, just run `vault status` to verify
 
 ## Security Considerations
 

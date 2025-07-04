@@ -1,11 +1,12 @@
 #!/bin/bash
-set -e
+
+#set -e
 
 # Update system packages
 yum update -y
 
 # Install necessary packages
-yum install -y jq unzip
+yum install -y jq unzip openssl
 
 # Download and install Vault
 VAULT_VERSION="${vault_version}"
@@ -17,8 +18,22 @@ chmod +x /usr/local/bin/vault
 # Create Vault directories
 mkdir -p /etc/vault.d
 mkdir -p /opt/vault/data
+mkdir -p /opt/vault/tls
 
-# Create Vault server configuration
+# Get the public DNS name of this EC2 instance
+export TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+PUBLIC_DNS=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/public-hostname)
+echo "Public DNS: $PUBLIC_DNS"
+
+# Generate SSL certificate and private key
+openssl req -x509 -newkey rsa:4096 -keyout /opt/vault/tls/vault-key.pem -out /opt/vault/tls/vault-cert.pem -days 365 -nodes -subj "/CN=$PUBLIC_DNS" -addext "subjectAltName=DNS:$PUBLIC_DNS,DNS:localhost,IP:127.0.0.1"
+
+# Set proper permissions on certificate files
+chmod 600 /opt/vault/tls/vault-key.pem
+chmod 644 /opt/vault/tls/vault-cert.pem
+chown root:root /opt/vault/tls/*
+
+# Create Vault server configuration with HTTPS
 cat > /etc/vault.d/vault.hcl << EOF
 ui = true
 
@@ -27,12 +42,13 @@ storage "file" {
 }
 
 listener "tcp" {
-  address     = "0.0.0.0:8200"
-  tls_disable = "true"
+  address       = "0.0.0.0:8200"
+  tls_cert_file = "/opt/vault/tls/vault-cert.pem"
+  tls_key_file  = "/opt/vault/tls/vault-key.pem"
 }
 
-api_addr = "http://0.0.0.0:8200"
-cluster_addr = "http://0.0.0.0:8201"
+api_addr = "https://$PUBLIC_DNS:8200"
+cluster_addr = "https://$PUBLIC_DNS:8201"
 EOF
 
 # Create Vault systemd service
@@ -67,8 +83,9 @@ systemctl start vault
 # Wait for Vault to start
 sleep 10
 
-# Initialize Vault
-export VAULT_ADDR=http://127.0.0.1:8200
+# Initialize Vault with HTTPS
+export VAULT_ADDR=https://127.0.0.1:8200
+export VAULT_SKIP_VERIFY=true  # Skip TLS verification for self-signed cert
 vault operator init -format=json > /root/vault-init.json
 
 # Unseal Vault
@@ -102,11 +119,18 @@ EOF
 vault policy write kv-access /etc/vault.d/kv-policy.hcl
 
 # Configure AWS auth role for the Vault agent
-
 vault write auth/aws/role/vault-agent \
   auth_type=iam \
   bound_iam_principal_arn="arn:aws:iam::${aws_account_id}:role/vault-agent-role" \
   policies=default,kv-access \
   ttl=24h
 
-echo "Vault server setup complete!"
+echo "Vault server setup complete with HTTPS enabled!"
+echo "Vault is accessible at: https://$PUBLIC_DNS:8200"
+echo "Certificate details saved in /opt/vault/tls/"
+
+cat >> /home/ec2-user/.bashrc << 'EOF'
+export VAULT_ADDR=https://localhost:8200
+export VAULT_TOKEN=$VAULT_TOKEN
+export VAULT_SKIP_VERIFY=true
+EOF

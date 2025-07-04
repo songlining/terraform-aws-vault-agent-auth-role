@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e
+
+#set -e
 
 # Update system packages
 yum update -y
@@ -40,7 +41,8 @@ auto_auth {
 }
 
 vault {
-  address = "http://${vault_server_ip}:8200"
+  address = "https://${vault_server_ip}:8200"
+  tls_skip_verify = true
 }
 
 cache {
@@ -83,7 +85,16 @@ systemctl enable vault-agent
 systemctl start vault-agent
 
 # add vault settings to root's .bashrc
-echo "export VAULT_ADDR=http://${vault_server_ip}:8200" >> /root/.bashrc
-echo "export VAULT_TOKEN=\$(cat /opt/vault/agent-data/vault-token)" >> /root/.bashrc
+cat >> /root/.bashrc << 'EOF'
+export VAULT_ADDR=https://${vault_server_ip}:8200
+export VAULT_TOKEN=$(cat /opt/vault/agent-data/vault-token)
+export VAULT_SKIP_VERIFY=true
+EOF
+
+cat >> /home/ec2-user/.bashrc << 'EOF'
+export VAULT_ADDR=https://${vault_server_ip}:8200
+export VAULT_TOKEN=$(cat /opt/vault/agent-data/vault-token)
+export VAULT_SKIP_VERIFY=true
+EOF
 
 echo "Vault agent setup complete!"
