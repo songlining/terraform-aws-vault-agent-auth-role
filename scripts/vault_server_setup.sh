@@ -157,7 +157,8 @@ vault write auth/jwt/role/myproject-github-role -<<EOF
 }
 EOF
 
-vault kv put secret/myapp username=larry password=123 # used by the github action
+vault secrets enable kv-v2
+vault kv put kv-v2/myapp username=larry password=123 # used by the github action
 
 echo "Vault server setup complete with HTTPS enabled!"
 echo "Vault is accessible at: https://$PUBLIC_DNS:8200"
