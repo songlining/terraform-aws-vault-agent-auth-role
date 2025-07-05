@@ -3,6 +3,11 @@ output "vault_server_public_ip" {
   value       = aws_instance.server_a.public_ip
 }
 
+output "vault_server_public_dns" {
+  description = "Public DNS name of the Vault server"
+  value       = aws_instance.server_a.public_dns
+}
+
 output "vault_server_private_ip" {
   description = "Private IP address of the Vault server"
   value       = aws_instance.server_a.private_ip

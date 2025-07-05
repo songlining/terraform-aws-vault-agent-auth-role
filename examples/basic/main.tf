@@ -15,3 +15,8 @@ output "vault_agent_public_ip" {
   value = module.vault_aws_auth.vault_agent_public_ip
   description = "Public IP address of the Vault agent"
 }
+
+output "vault_addr" {
+  value = "https://${module.vault_aws_auth.vault_server_public_dns}:8200"
+  description = "Complete VAULT_ADDR for accessing the Vault server via HTTPS"
+}
