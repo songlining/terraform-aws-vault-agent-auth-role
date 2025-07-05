@@ -125,6 +125,39 @@ vault write auth/aws/role/vault-agent \
   policies=default,kv-access \
   ttl=24h
 
+# the following is for github jwt integration
+# 1. Enable JWT auth method
+vault auth enable jwt
+
+# 2. Configure JWT auth method for GitHub
+vault write auth/jwt/config \
+  bound_issuer="https://token.actions.githubusercontent.com" \
+  oidc_discovery_url="https://token.actions.githubusercontent.com"
+
+# 3. Create a policy for your secrets
+vault policy write myproject-policy - <<EOF
+# Read-only permission on your secret path
+path "kv-v2/data/myapp" {
+  capabilities = [ "read" ]
+}
+EOF
+
+# 4. Create a role that binds to your GitHub repository
+vault write auth/jwt/role/myproject-github-role -<<EOF
+{
+  "role_type": "jwt",
+  "user_claim": "repository",
+  "bound_audiences": ["https://github.com/songlining/github-action-vault-demo"],
+  "bound_claims": {
+    "repository": "songlining/github-action-vault-demo"
+  },
+  "policies": ["myproject-policy"],
+  "ttl": "10m"
+}
+EOF
+
+vault kv put secret/myapp username=larry password=123 # used by the github action
+
 echo "Vault server setup complete with HTTPS enabled!"
 echo "Vault is accessible at: https://$PUBLIC_DNS:8200"
 echo "Certificate details saved in /opt/vault/tls/"
