@@ -143,6 +143,7 @@ path "kv-v2/data/myapp" {
 EOF
 
 # 4. Create a role that binds to your GitHub repository
+#    update to match your environemnt
 vault write auth/jwt/role/myproject-github-role -<<EOF
 {
   "role_type": "jwt",
