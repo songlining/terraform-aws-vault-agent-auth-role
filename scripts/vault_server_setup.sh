@@ -161,6 +161,20 @@ vault write auth/jwt/role/myproject-github-role-dev -<<EOF
 }
 EOF
 
+vault write auth/jwt/role/myproject-github-role-production -<<EOF
+{
+  "role_type": "jwt",
+  "user_claim": "sub",
+  "bound_audiences": ["https://github.com/songlining/github-action-vault-demo"],
+  "bound_claims": {
+    "repository": "songlining/github-action-vault-demo",
+    "environment": "production"
+  },
+  "policies": ["myproject-policy"],
+  "ttl": "10m"
+}
+EOF
+
 vault secrets enable kv-v2
 vault kv put kv-v2/myapp username=larry password=123 # used by the github action
 
