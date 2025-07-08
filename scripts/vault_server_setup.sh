@@ -49,6 +49,8 @@ listener "tcp" {
 
 api_addr = "https://$PUBLIC_DNS:8200"
 cluster_addr = "https://$PUBLIC_DNS:8201"
+
+log_level = "debug"
 EOF
 
 # Create Vault systemd service
