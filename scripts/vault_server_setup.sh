@@ -146,10 +146,11 @@ EOF
 
 # 4. Create a role that binds to your GitHub repository
 #    update to match your environemnt
-vault write auth/jwt/role/myproject-github-role -<<EOF
+# subject claim: "repo:songlining/github-action-vault-demo:environment:dev"
+vault write auth/jwt/role/myproject-github-role-dev -<<EOF
 {
   "role_type": "jwt",
-  "user_claim": "repository",
+  "user_claim": "sub",
   "bound_audiences": ["https://github.com/songlining/github-action-vault-demo"],
   "bound_claims": {
     "repository": "songlining/github-action-vault-demo",
