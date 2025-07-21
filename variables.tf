@@ -19,7 +19,7 @@ variable "key_name" {
 variable "vault_version" {
   description = "Version of Hashicorp Vault enterpriseto install"
   type        = string
-  default     = "1.20.0+ent.hsm"
+  default     = "1.19.3"
 }
 
 variable "instance_type" {
