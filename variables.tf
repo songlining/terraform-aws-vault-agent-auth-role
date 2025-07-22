@@ -17,7 +17,7 @@ variable "key_name" {
 }
 
 variable "vault_version" {
-  description = "Version of Hashicorp Vault enterpriseto install"
+  description = "Version of Hashicorp Vault to install"
   type        = string
   default     = "1.19.3"
 }
